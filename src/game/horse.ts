@@ -13,33 +13,65 @@ function part(geometry: THREE.BufferGeometry, mat: THREE.Material, x: number, y:
   return mesh
 }
 
+function paintLegGradient(geometry: THREE.BufferGeometry, coat: THREE.Color, socks: THREE.Color) {
+  geometry.computeBoundingBox()
+  const bbox = geometry.boundingBox!
+  const minY = bbox.min.y
+  const span = Math.max(0.0001, bbox.max.y - minY)
+  const position = geometry.attributes.position
+  const colors = new Float32Array(position.count * 3)
+  const c = new THREE.Color()
+  for (let i = 0; i < position.count; i++) {
+    const t = (position.getY(i) - minY) / span
+    const mix = 1 - THREE.MathUtils.smoothstep(t, 0.08, 0.34)
+    c.copy(coat).lerp(socks, mix)
+    colors[i * 3] = c.r
+    colors[i * 3 + 1] = c.g
+    colors[i * 3 + 2] = c.b
+  }
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+}
+
 export function createHuman(mounted: boolean) {
   const group = new THREE.Group()
-  const coat = material('#314b45')
-  const coatLight = material('#49685b')
-  const trousers = material('#34312e')
+  const coat = material('#2f4a3f')
+  const coatLight = material('#4d6e5c')
+  const scarf = material('#9a4b32')
+  const trousers = material('#362f2a')
   const leather = material('#4a2d20')
-  const skin = material('#b98562')
-  const hat = material('#372b23')
+  const glove = material('#3a2419')
+  const skin = material('#c08f6a')
+  const hat = material('#3a2c22')
   const base = mounted ? 0 : 0.88
-  group.add(part(new THREE.CylinderGeometry(0.25, 0.32, 0.72, 7), coat, 0, base + 0.42, 0))
-  group.add(part(new THREE.CylinderGeometry(0.29, 0.25, 0.2, 7), coatLight, 0, base + 0.78, 0))
-  group.add(part(new THREE.SphereGeometry(0.22, 10, 7), skin, 0, base + 1.03, 0.015))
-  group.add(part(new THREE.CylinderGeometry(0.34, 0.34, 0.055, 12), hat, 0, base + 1.21, 0))
-  group.add(part(new THREE.CylinderGeometry(0.2, 0.23, 0.22, 9), hat, 0, base + 1.31, 0))
-  group.add(part(new THREE.BoxGeometry(0.35, 0.06, 0.035), leather, 0, base + 1.25, 0.19))
+
+  // Torso: wider chest tapering to waist, plus a belt and a short flared
+  // cape skirt so the silhouette doesn't read as a thin stick figure.
+  group.add(part(new THREE.CylinderGeometry(0.3, 0.37, 0.62, 8), coat, 0, base + 0.46, 0))
+  group.add(part(new THREE.CylinderGeometry(0.38, 0.33, 0.1, 8), leather, 0, base + 0.165, 0))
+  group.add(part(new THREE.CylinderGeometry(0.33, 0.49, 0.22, 9), coat, 0, base + 0.06, 0))
+  group.add(part(new THREE.CylinderGeometry(0.33, 0.3, 0.17, 8), coatLight, 0, base + 0.8, 0))
+  group.add(part(new THREE.TorusGeometry(0.31, 0.055, 6, 10), scarf, 0, base + 0.82, 0.02))
+
+  // Head + hat
+  group.add(part(new THREE.SphereGeometry(0.235, 12, 9), skin, 0, base + 1.06, 0.015))
+  group.add(part(new THREE.CylinderGeometry(0.36, 0.36, 0.06, 14), hat, 0, base + 1.25, 0))
+  group.add(part(new THREE.CylinderGeometry(0.21, 0.24, 0.23, 10), hat, 0, base + 1.36, 0))
+  group.add(part(new THREE.BoxGeometry(0.37, 0.06, 0.04), leather, 0, base + 1.29, 0.2))
+
   for (const side of [-1, 1]) {
-    const arm = part(new THREE.CylinderGeometry(0.075, 0.065, 0.67, 7), coat, side * 0.33, base + 0.42, mounted ? 0.18 : 0)
-    arm.rotation.z = side * (mounted ? 0.48 : 0.12)
-    arm.rotation.x = mounted ? -0.65 : 0
+    const shoulder = part(new THREE.SphereGeometry(0.135, 8, 6), coat, side * 0.37, base + 0.73, mounted ? 0.1 : 0)
+    group.add(shoulder)
+    const arm = part(new THREE.CylinderGeometry(0.115, 0.095, 0.6, 8), coat, side * 0.4, base + 0.42, mounted ? 0.18 : 0)
+    arm.rotation.z = side * (mounted ? 0.46 : 0.14)
+    arm.rotation.x = mounted ? -0.6 : 0
     group.add(arm)
-    group.add(part(new THREE.SphereGeometry(0.075, 7, 5), skin, side * (mounted ? 0.47 : 0.37), base + (mounted ? 0.19 : 0.09), mounted ? 0.42 : 0))
-    const leg = part(new THREE.CylinderGeometry(0.105, 0.085, mounted ? 0.82 : 0.88, 7), trousers, side * (mounted ? 0.38 : 0.15), mounted ? -0.25 : 0.44, mounted ? 0.03 : 0)
-    leg.rotation.z = side * (mounted ? 0.48 : 0.02)
-    leg.rotation.x = mounted ? -0.18 : 0
+    group.add(part(new THREE.SphereGeometry(0.1, 8, 6), glove, side * (mounted ? 0.5 : 0.39), base + (mounted ? 0.2 : 0.09), mounted ? 0.44 : 0))
+    const leg = part(new THREE.CylinderGeometry(0.155, 0.125, mounted ? 0.8 : 0.86, 8), trousers, side * (mounted ? 0.4 : 0.16), mounted ? -0.24 : 0.43, mounted ? 0.03 : 0)
+    leg.rotation.z = side * (mounted ? 0.5 : 0.03)
+    leg.rotation.x = mounted ? -0.2 : 0
     group.add(leg)
-    const boot = part(new THREE.BoxGeometry(0.18, 0.28, 0.34), leather, side * (mounted ? 0.57 : 0.15), mounted ? -0.66 : 0.12, mounted ? 0.13 : 0.08)
-    boot.rotation.z = side * (mounted ? 0.25 : 0)
+    const boot = part(new THREE.BoxGeometry(0.22, 0.3, 0.38), leather, side * (mounted ? 0.6 : 0.16), mounted ? -0.66 : 0.11, mounted ? 0.14 : 0.09)
+    boot.rotation.z = side * (mounted ? 0.27 : 0)
     group.add(boot)
   }
   return group
@@ -68,9 +100,11 @@ export class Horse {
         child.receiveShadow = true
         child.frustumCulled = false
         const old = child.material as THREE.MeshStandardMaterial
+        paintLegGradient(child.geometry, new THREE.Color('#90603a'), new THREE.Color('#1d130b'))
         child.material = new THREE.MeshStandardMaterial({
-          color: '#78452e',
-          roughness: 0.88,
+          color: '#ffffff',
+          vertexColors: true,
+          roughness: 0.82,
           metalness: 0,
           flatShading: false,
           map: old.map ?? null,
