@@ -91,7 +91,7 @@ export class Horse {
     this.model = gltf.scene
     const box = new THREE.Box3().setFromObject(this.model)
     const size = box.getSize(new THREE.Vector3())
-    const scale = 1.78 / size.y
+    const scale = 2.15 / size.y
     this.model.scale.setScalar(scale)
     this.model.position.y = -box.min.y * scale
     this.model.traverse((child) => {
@@ -113,11 +113,11 @@ export class Horse {
     })
     this.visual.add(this.model)
     const saddle = new THREE.Group()
-    saddle.add(part(new THREE.BoxGeometry(0.6, 0.12, 0.92), material('#3d251c'), 0, 1.01, -0.08))
-    const blanket = part(new THREE.BoxGeometry(0.72, 0.07, 1.06), material('#8e3f32'), 0, 0.94, -0.08)
+    saddle.add(part(new THREE.BoxGeometry(0.6, 0.12, 0.92), material('#3d251c'), 0, 1.22, -0.08))
+    const blanket = part(new THREE.BoxGeometry(0.72, 0.07, 1.06), material('#8e3f32'), 0, 1.15, -0.08)
     saddle.add(blanket)
     this.visual.add(saddle)
-    this.rider.position.set(0, 1.14, -0.02)
+    this.rider.position.set(0, 1.38, -0.02)
     this.rider.scale.setScalar(0.88)
     this.visual.add(this.rider)
     this.root.add(this.visual)
