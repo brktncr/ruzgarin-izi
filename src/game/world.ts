@@ -93,8 +93,8 @@ export class World {
 
   async build(scene: THREE.Scene) {
     const [heightResponse, terrainResponse] = await Promise.all([
-      fetch('/data/heights.json'),
-      fetch('/data/terrain.json'),
+      fetch(`${import.meta.env.BASE_URL}data/heights.json`),
+      fetch(`${import.meta.env.BASE_URL}data/terrain.json`),
     ])
     if (!heightResponse.ok || !terrainResponse.ok) throw new Error('Arazi verileri yüklenemedi')
     this.heights = await heightResponse.json()

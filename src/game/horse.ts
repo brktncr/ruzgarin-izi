@@ -55,7 +55,7 @@ export class Horse {
   private elapsed = 0
 
   async load() {
-    const gltf = await new GLTFLoader().loadAsync('/models/Horse.glb')
+    const gltf = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}models/Horse.glb`)
     this.model = gltf.scene
     const box = new THREE.Box3().setFromObject(this.model)
     const size = box.getSize(new THREE.Vector3())
