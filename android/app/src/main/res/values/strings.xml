@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Rüzgârın İzi</string>
+    <string name="title_activity_main">Rüzgârın İzi</string>
+    <string name="package_name">com.bobx.ruzgarinizi</string>
+    <string name="custom_url_scheme">com.bobx.ruzgarinizi</string>
+</resources>

@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { SplashScreen } from '@capacitor/splash-screen'
+import { StatusBar, Style } from '@capacitor/status-bar'
+import { App as CapacitorApp } from '@capacitor/app'
+import { KeepAwake } from '@capacitor-community/keep-awake'
 import {
   BookOpen,
   ChevronRight,
@@ -58,6 +63,18 @@ function TouchKey({ code, label, engine }: { code: string; label: string; engine
   )
 }
 
+function HoldKey({ code, glyph, caption, engine }: { code: string; glyph: string; caption: string; engine?: GameEngine }) {
+  return (
+    <button
+      aria-label={caption}
+      onPointerDown={(event) => { event.preventDefault(); engine?.setKey(code, true) }}
+      onPointerUp={() => engine?.setKey(code, false)}
+      onPointerCancel={() => engine?.setKey(code, false)}
+      onPointerLeave={() => engine?.setKey(code, false)}
+    >{glyph}<small>{caption}</small></button>
+  )
+}
+
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<GameEngine | undefined>(undefined)
@@ -87,6 +104,34 @@ export default function Home() {
     const timer = window.setTimeout(() => setToastVisible(false), 4200)
     return () => window.clearTimeout(timer)
   }, [snapshot.toastId])
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !ready) return
+    SplashScreen.hide()
+  }, [ready])
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    if (snapshot.phase === 'playing') KeepAwake.keepAwake().catch(() => {})
+    else KeepAwake.allowSleep().catch(() => {})
+  }, [snapshot.phase])
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    const handle = CapacitorApp.addListener('backButton', () => {
+      if (helpOpen) { setHelpOpen(false); return }
+      if (snapshot.phase === 'playing') engineRef.current?.pause()
+      else if (snapshot.phase === 'paused') engineRef.current?.resume()
+      else if (snapshot.phase === 'title') CapacitorApp.exitApp()
+    })
+    return () => { void handle.then((listener) => listener.remove()) }
+  }, [snapshot.phase, helpOpen])
 
   const engine = engineRef.current
   const fullscreen = () => {
@@ -208,6 +253,8 @@ export default function Home() {
                 <TouchKey code="KeyD" label="Sağ" engine={engine} />
               </div>
               <div className="touch-actions">
+                <HoldKey code="ShiftLeft" glyph="⇧" caption="Dörtnal" engine={engine} />
+                <HoldKey code="Space" glyph="␣" caption="Zıpla" engine={engine} />
                 <button onClick={() => engine?.interact()}>E<small>EtKileşim</small></button>
                 <button onClick={() => engine?.toggleMount()}>R<small>İn / bin</small></button>
               </div>

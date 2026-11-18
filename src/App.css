@@ -47,7 +47,7 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-he
 .title-footer { position: absolute; left: clamp(30px, 6vw, 92px); right: clamp(30px, 6vw, 92px); bottom: 24px; display: flex; justify-content: space-between; color: #b9bdac; font-size: 11px; letter-spacing: 0.08em; }
 .title-footer button { min-height: 40px; border: 0; background: none; color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
 
-.hud-top { position: absolute; z-index: 10; left: 0; right: 0; top: 0; display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 28px; pointer-events: none; }
+.hud-top { position: absolute; z-index: 10; left: 0; right: 0; top: 0; display: flex; align-items: flex-start; justify-content: space-between; padding: max(24px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right)) 24px max(28px, env(safe-area-inset-left)); pointer-events: none; }
 .hud-brand { display: flex; align-items: center; gap: 11px; text-shadow: 0 2px 9px #142017; }
 .brand-sigil { width: 39px; height: 39px; display: grid; place-items: center; border: 1px solid rgba(238, 223, 188, 0.6); transform: rotate(45deg); color: #e4c486; font: 700 12px Georgia, serif; }
 .brand-sigil::first-line { transform: rotate(-45deg); }
@@ -152,7 +152,7 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-he
 .error-panel p { line-height: 1.6; }
 .touch-controls { display: none; }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-height: 620px) and (orientation: landscape) {
   .quest-panel { width: 195px; }
   .quest { font-size: 11px; }
   .control-hint { gap: 8px; }
@@ -161,7 +161,7 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-he
   .title-screen { background: linear-gradient(90deg, rgba(13,23,17,0.88), rgba(14,24,18,0.45)); }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 650px), (max-height: 460px) and (orientation: landscape) {
   .game-shell { min-height: 540px; }
   .title-screen { align-items: flex-start; padding: max(70px, 9vh) 25px 70px; background: linear-gradient(180deg, rgba(13,23,17,0.77), rgba(14,24,18,0.35) 65%, rgba(13,23,17,0.65)); }
   .title-copy h1 { font-size: clamp(64px, 22vw, 92px); }
@@ -181,21 +181,21 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-he
   .hud-actions { gap: 4px; }
   .hud-actions button { width: 44px; height: 44px; }
   .hud-actions button:nth-child(2) { display: none; }
-  .quest-panel { top: 70px; left: 15px; width: 142px; padding: 10px 12px; }
+  .quest-panel { top: 70px; left: max(15px, env(safe-area-inset-left)); width: 142px; padding: 10px 12px; }
   .panel-heading { padding: 0; border: 0; }
   .panel-heading span { font-size: 8px; }
   .panel-heading b { font-size: 15px; }
   .quest-list { display: none; }
-  .minimap { top: 116px; right: 15px; width: 91px; height: 91px; }
-  .horse-status { left: 15px; bottom: 116px; width: 205px; padding: 12px; }
+  .minimap { top: 116px; right: max(15px, env(safe-area-inset-right)); width: 91px; height: 91px; }
+  .horse-status { left: max(15px, env(safe-area-inset-left)); bottom: 116px; width: 205px; padding: 12px; }
   .status-title { margin-bottom: 9px; }
   .meters-grid { gap: 8px 10px; }
   .meter-label span { font-size: 9px; }
-  .ride-status { left: auto; right: 16px; bottom: 131px; transform: none; }
+  .ride-status { left: auto; right: max(16px, env(safe-area-inset-right)); bottom: 131px; transform: none; }
   .control-hint { display: none; }
   .interaction-prompt { bottom: 258px; max-width: 90vw; font-size: 12px; white-space: normal; text-align: center; }
   .game-toast { top: 113px; font-size: 13px; }
-  .touch-controls { position: absolute; z-index: 12; left: 15px; right: 15px; bottom: max(12px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }
+  .touch-controls { position: absolute; z-index: 12; left: max(15px, env(safe-area-inset-left)); right: max(15px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }
   .touch-directions { width: 148px; display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(2, 46px); gap: 4px; }
   .touch-directions button:first-child { grid-column: 2; }
   .touch-directions button:nth-child(2) { grid-column: 1; grid-row: 2; }
@@ -203,8 +203,8 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-he
   .touch-directions button:nth-child(4) { grid-column: 3; grid-row: 2; }
   .touch-key, .touch-actions button { border: 1px solid rgba(238,225,194,0.33); border-radius: 8px; background: rgba(28,37,28,0.72); color: #eee2c7; backdrop-filter: blur(6px); pointer-events: auto; touch-action: none; }
   .touch-key:active, .touch-actions button:active { background: rgba(168,142,84,0.8); }
-  .touch-actions { display: flex; gap: 8px; }
-  .touch-actions button { width: 57px; height: 57px; font-weight: 700; }
+  .touch-actions { display: grid; grid-template-columns: repeat(2, 48px); grid-template-rows: repeat(2, 48px); gap: 6px; }
+  .touch-actions button { width: 48px; height: 48px; font-weight: 700; }
   .touch-actions small { display: block; margin-top: 3px; font-size: 7px; font-weight: 400; }
   .paper-panel { padding: 25px 22px; }
   .paper-panel h2 { font-size: 27px; }
@@ -212,6 +212,19 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-he
   .help-grid > div { min-height: 39px; }
   .help-backdrop { align-items: flex-start; }
   .summary-stats span { font-size: 9px; }
+}
+
+@media (max-height: 460px) and (orientation: landscape) {
+  .game-shell { min-height: 100dvh; }
+  .title-screen { align-items: center; padding: max(14px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 14px max(20px, env(safe-area-inset-left)); overflow-y: auto; }
+  .title-copy h1 { font-size: clamp(34px, 8vh, 56px); line-height: 0.85; }
+  .title-copy h1 em { margin-left: 24px; }
+  .title-lead { margin: 10px 0 14px; font-size: 13px; line-height: 1.4; max-width: 420px; }
+  .title-actions { gap: 14px; }
+  .primary-button { min-height: 38px; padding: 9px 16px; font-size: 13px; }
+  .text-button { min-height: 34px; font-size: 13px; }
+  .quick-controls { margin-top: 10px; gap: 8px 16px; font-size: 10px; }
+  .title-footer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -42,7 +42,7 @@ export class GameEngine {
   private elapsed = 0
   private orbitYaw = 0
   private orbitPitch = 0
-  private cameraDistance = 8
+  private cameraDistance = 9.5
   private dragging = false
   private pointerX = 0
   private pointerY = 0
@@ -395,12 +395,13 @@ export class GameEngine {
     const heading = this.state.mounted ? this.horseHeading : this.humanHeading
     const yaw = heading + this.orbitYaw
     const distance = this.state.mounted ? this.cameraDistance : Math.min(7, this.cameraDistance)
-    const height = this.state.mounted ? 3.4 : 2.8
-    this.cameraTarget.set(active.x, active.y + (this.state.mounted ? 1.7 : 1.25), active.z)
+    const height = this.state.mounted ? 6.6 : 2.8
+    const sideOffset = this.state.mounted ? 1.2 : 0
+    this.cameraTarget.set(active.x + Math.cos(yaw) * 0.3, active.y + (this.state.mounted ? 1.1 : 1.25), active.z - Math.sin(yaw) * 0.3)
     this.cameraDesired.set(
-      active.x - Math.sin(yaw) * distance,
+      active.x - Math.sin(yaw) * distance + Math.cos(yaw) * sideOffset,
       active.y + height + this.orbitPitch,
-      active.z - Math.cos(yaw) * distance,
+      active.z - Math.cos(yaw) * distance - Math.sin(yaw) * sideOffset,
     )
     this.cameraDesired.y = Math.max(this.cameraDesired.y, this.world.heightAt(this.cameraDesired.x, this.cameraDesired.z) + 0.65)
     for (const obstacle of this.world.obstacles) {
