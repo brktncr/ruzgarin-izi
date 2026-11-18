@@ -1,4 +1,10 @@
 import * as THREE from 'three'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js'
 import { GameAudio } from './audio'
 import { clampNeeds, countCompleted, EMPTY_TASKS, INITIAL_SNAPSHOT, LANDMARKS, WORLD_RADIUS } from './config'
 import { createHuman, Horse } from './horse'
@@ -42,7 +48,7 @@ export class GameEngine {
   private elapsed = 0
   private orbitYaw = 0
   private orbitPitch = 0
-  private cameraDistance = 9.5
+  private cameraDistance = 8.5
   private dragging = false
   private pointerX = 0
   private pointerY = 0
@@ -56,6 +62,8 @@ export class GameEngine {
   private cameraDesired = new THREE.Vector3()
   private moveVector = new THREE.Vector3()
   private canvas: HTMLCanvasElement
+  private composer: EffectComposer
+  private bloomPass: UnrealBloomPass
 
   constructor(canvas: HTMLCanvasElement, onSnapshot: (snapshot: Snapshot) => void) {
     this.canvas = canvas
@@ -66,6 +74,15 @@ export class GameEngine {
     this.renderer.toneMappingExposure = 1.22
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFShadowMap
+    this.composer = new EffectComposer(this.renderer)
+    this.composer.addPass(new RenderPass(this.scene, this.camera))
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0.55, 0.86)
+    this.composer.addPass(this.bloomPass)
+    const vignette = new ShaderPass(VignetteShader)
+    vignette.uniforms.darkness.value = 1.15
+    vignette.uniforms.offset.value = 1.05
+    this.composer.addPass(vignette)
+    this.composer.addPass(new OutputPass())
     this.loadSaved()
   }
 
@@ -227,6 +244,7 @@ export class GameEngine {
     this.camera.aspect = width / Math.max(1, height)
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(width, height, false)
+    this.composer.setSize(width, height)
   }
 
   private animate = (timestamp: number) => {
@@ -253,7 +271,7 @@ export class GameEngine {
     }
     this.updateCamera(dt)
     this.world.updateEnvironment(this.state.time, this.elapsed, this.state.raining, this.activePosition(), this.state.phase === 'playing' ? dt : 0)
-    this.renderer.render(this.scene, this.camera)
+    this.composer.render()
     this.snapshotTimer += dt
     if (this.snapshotTimer > 0.12) {
       this.snapshotTimer = 0
@@ -395,13 +413,14 @@ export class GameEngine {
     const heading = this.state.mounted ? this.horseHeading : this.humanHeading
     const yaw = heading + this.orbitYaw
     const distance = this.state.mounted ? this.cameraDistance : Math.min(7, this.cameraDistance)
-    const height = this.state.mounted ? 6.6 : 2.8
-    const sideOffset = this.state.mounted ? 1.2 : 0
-    this.cameraTarget.set(active.x + Math.cos(yaw) * 0.3, active.y + (this.state.mounted ? 1.1 : 1.25), active.z - Math.sin(yaw) * 0.3)
+    const height = this.state.mounted ? 4.6 : 2.8
+    const arcOffset = this.state.mounted ? 0.56 : 0
+    const camYaw = yaw + arcOffset
+    this.cameraTarget.set(active.x + Math.sin(yaw) * 0.6, active.y + (this.state.mounted ? 1.25 : 1.25), active.z + Math.cos(yaw) * 0.6)
     this.cameraDesired.set(
-      active.x - Math.sin(yaw) * distance + Math.cos(yaw) * sideOffset,
+      active.x - Math.sin(camYaw) * distance,
       active.y + height + this.orbitPitch,
-      active.z - Math.cos(yaw) * distance - Math.sin(yaw) * sideOffset,
+      active.z - Math.cos(camYaw) * distance,
     )
     this.cameraDesired.y = Math.max(this.cameraDesired.y, this.world.heightAt(this.cameraDesired.x, this.cameraDesired.z) + 0.65)
     for (const obstacle of this.world.obstacles) {
@@ -632,6 +651,8 @@ export class GameEngine {
     this.state.quality = quality
     const low = quality === 'low' || window.innerWidth < 700
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, low ? 1.25 : 1.8))
+    this.composer.setSize(this.canvas.clientWidth || window.innerWidth, this.canvas.clientHeight || window.innerHeight)
+    this.bloomPass.strength = low ? 0.18 : 0.3
     this.world.setQuality(low ? 'low' : 'high')
     this.save()
     this.emit()

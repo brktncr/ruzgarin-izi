@@ -91,7 +91,6 @@ export class Horse {
       this.mixer = new THREE.AnimationMixer(this.model)
       this.action = this.mixer.clipAction(gltf.animations[0])
       this.action.play()
-      this.action.paused = true
     }
   }
 
@@ -102,11 +101,12 @@ export class Horse {
   update(dt: number, speed: number) {
     this.elapsed += dt
     const absolute = Math.abs(speed)
+    const idle = absolute < 0.12
     if (this.action) {
-      this.action.paused = absolute < 0.12
-      this.action.timeScale = THREE.MathUtils.clamp(absolute / 5.5, 0.35, 2.2)
+      this.action.paused = false
+      this.action.timeScale = idle ? 0.16 : THREE.MathUtils.clamp(absolute / 5.5, 0.35, 2.2)
     }
     this.mixer?.update(dt)
-    this.visual.position.y = absolute < 0.12 ? Math.sin(this.elapsed * 1.4) * 0.012 : 0
+    this.visual.position.y = idle ? Math.sin(this.elapsed * 1.4) * 0.012 : 0
   }
 }
